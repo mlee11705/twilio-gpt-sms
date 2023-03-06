@@ -19,8 +19,10 @@
     "express": "^4.17.1",
     "got": "^11.8.6",
     "gpt3-tokenizer": "^1.1.4",
+    "langchain": "^0.0.11",
     "openai": "^3.1.0",
     "promptable": "^0.0.5",
+    "serpapi": "^1.1.1",
     "ts-node": "^10.9.1",
     "twilio": "^3.57.0"
   },

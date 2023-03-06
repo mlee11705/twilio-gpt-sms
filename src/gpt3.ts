@@ -1,7 +1,6 @@
 /*
   This is a sample GPT-3 bot that uses the Promptable API to get a prompt and config
   and then uses the OpenAI API to generate a response.
-
   If you don't want to use Promptable, you can just hard-code your prompt and config
   somewhere in this file and replace the call to the Promptable API with a local call.
 */
@@ -136,10 +135,13 @@ export const getReply = async (
   console.log("PROMPT", prompt);
   const params = {
     prompt,
-    model: data.config.model,
-    max_tokens: data.config.max_tokens,
-    temperature: data.config.temperature,
-    stop: data.config.stop,
+    model: "text-davinci-003",
+  prompt: "Hi",
+  temperature: 0.7,
+  max_tokens: 256,
+  top_p: 1,
+  frequency_penalty: 0,
+  presence_penalty: 0,
   };
   console.log(params);
   const response = await openai.createCompletion(params);
