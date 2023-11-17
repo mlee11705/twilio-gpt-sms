@@ -5,15 +5,15 @@
   somewhere in this file and replace the call to the Promptable API with a local call.
 */
 
-const { Configuration, OpenAIApi } = require("openai");
+import OpenAI from "openai";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import axios from "axios";
 import { ChatHistory, ChatHistoryStore, Turn } from "./chatHistory";
-import { PromptableApi } from "promptable";
+// import { PromptableApi } from "promptable";
 
 // AI ASSISTANT BOT:
 const DEFAULT_AGENT_NAME = "Assistant";
-const DEFAULT_PROMPT_ID = "clbilb0kh0008h7eg8jv8owdu";
+// const DEFAULT_PROMPT_ID = "clbilb0kh0008h7eg8jv8owdu";
 
 const tokenizer = new GPT3Tokenizer({ type: "gpt3" });
 
@@ -24,11 +24,9 @@ function countBPETokens(text: string): number {
 
 const store = new ChatHistoryStore();
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-const openai = new OpenAIApi(configuration);
 
 type OpenAIResponse = {
   text: string;
@@ -62,7 +60,7 @@ function handlePossibleReset(
   message: string
 ): ChatHistory | null {
   if (message.trim().toLowerCase() === "reset") {
-    const promptId = DEFAULT_PROMPT_ID;
+    const promptId = `${Math.random()}`;
     const agentName = DEFAULT_AGENT_NAME;
     store.create(phone, agentName, promptId);
     return store.get(phone);
@@ -86,7 +84,7 @@ function getOrCreateChatHistory(phone: string, message: string) {
   if (chatHistory == null) {
     chatHistory = store.get(phone);
     if (chatHistory == null) {
-      chatHistory = store.create(phone, DEFAULT_AGENT_NAME, DEFAULT_PROMPT_ID);
+      chatHistory = store.create(phone, DEFAULT_AGENT_NAME, `${Math.random()}`);
     }
   } else {
     console.log("RESETTING CHAT HISTORY!");
@@ -125,9 +123,19 @@ export const getReply = async (
 
   // Get the prompt and config from the Promptable API
   // (Optionally) replace this call with a local hard-coded prompt and config
-  const data = await PromptableApi.getActiveDeployment({
-    promptId: chatHistory.promptId,
-  });
+  // const data = await PromptableApi.getActiveDeployment({
+  //   promptId: chatHistory.promptId,
+  // });
+
+  const data = {
+    text: ``,
+    config: {
+      model: 'gpt-4',
+      max_tokens: 1080,
+      temperature: 1.0,
+      stop: null
+    }
+  }
 
   console.log(data);
 
@@ -141,9 +149,15 @@ export const getReply = async (
     stop: data.config.stop,
   };
   console.log(params);
-  const response = await openai.createCompletion(params);
-  console.log(response.data);
-  const agentText = response.data.choices[0].text.trim();
+  const response = await openai.chat.completions.create({
+    messages: [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": message}
+    ],
+    model: 'gpt-4',
+  });
+  console.log(response);
+  const agentText = response.choices[0]?.message.content || ''
   store.add(phoneNumber, agentText, chatHistory.agentName);
   console.log(`${chatHistory.agentName}: ${agentText}`);
   return {
